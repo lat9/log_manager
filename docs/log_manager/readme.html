@@ -62,7 +62,7 @@ th { background-color: #eee; }
 
 <body>
   <h1>Log Manager for Zen Cart 1.5.1 (and later)</h1>
-  <h3>Version 1.0.0</h3>
+  <h3>Version 1.1.0</h3>
   <p>Current Support Thread at Zen Cart Forums: <a href="https://www.zen-cart.com/showthread.php?221939-Log-Manager-Support-Thread">https://www.zen-cart.com/showthread.php?221939-Log-Manager-Support-Thread</a></p>
 
   <div class="tab-container" id="outer-container">
@@ -76,7 +76,7 @@ th { background-color: #eee; }
         <h2>What it does</h2>
         <p>Logs are good things, providing information that allows an after-the-fact analysis if something goes wrong &hellip; but they can start filling up your store's <code class="no-pad">/logs</code> directory if you don't keep a watch on them!</p>
         <p>The <em>Log Manager</em> enables you to control how long you keep those <code class="no-pad">.log</code> files, inspecting each file's last-modified date, and then automatically removing (i.e. deleting) any files that are past their &quot;expiration&quot;.  There's also a setting to enable you to identify logs that you want to keep (e.g. <em>zcInstall</em> logs).</p>
-        <p>Once configured, <em>Log Manager</em> inspects your store's <code class="no-pad">/logs</code> directory on each admin access to see if there are any candidates for removal &hellip; and, if found, removes them.</p>
+        <p>Once configured, <em>Log Manager</em> inspects your store's <code class="no-pad">/logs</code> directory, starting with v1.1.0, each time an admin successfully logs in to see if there are any candidates for removal &hellip; and, if found, removes them.</p>
       </div>
       
       <div id="installation">
@@ -141,6 +141,7 @@ th { background-color: #eee; }
             <div id="changes">
               <ul>
                 <li>v1.0.0, 2017-02-27, Initial release.</li>
+                <li>v1.1.0, 2017-06-28, Log removal occurs now upon successful admin login.</li>
               </ul>
             </div>
           </div>
