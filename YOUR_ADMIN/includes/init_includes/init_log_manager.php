@@ -53,39 +53,68 @@ if (isset($_SESSION['admin_id']) && !isset($_SESSION['log_managed'])) {
         $keep_until_date = date(DATE_FORMAT . ' H:m:i', $keep_until);
 
         // -----
-        // Loop through all files present in the /logs directory ...
+        // Loop through all files present in the /logs and, for zc158 and later, the
+        // /app/storage/logs, sub-directories as well as any additional directories
+        // that might be supplied in an optional constant definition.
         //
-        $files_removed = 0;
-        if ($dir = dir(DIR_FS_LOGS)) {
-            while (($current_file = $dir->read()) !== false) {
-                // -----
-                // ... looking for a ".log" file with a name that isn't in the "keep-these" list ...
-                //
-                if (strpos($current_file, '.log') !== false && $match_string != '' && !preg_match($match_string, $current_file)) {
-                    // -----
-                    // ... that was created prior to the keep-until date ...
-                    //
-                    $modified = filemtime(DIR_FS_LOGS . DIRECTORY_SEPARATOR . $current_file);
-                    if ($modified !== false && $modified < $keep_until) {
-                        // -----
-                        // ... and remove it.
-                        //
-                        // I'm not a big fan of inhibiting error-reports, but for this case it's possible that multiple
-                        // admins have "hit" the site concurrently and are all causing this script to run.
-                        //
-                        @unlink(DIR_FS_LOGS . DIRECTORY_SEPARATOR . $current_file);
-                        $files_removed++;
-                    }
-                }
-            }
-            $dir->close();
+        $log_manager_dirs = [
+            DIR_FS_LOGS,
+        ];
+        if (is_dir(DIR_FS_CATALOG . 'app/storage/logs')) {
+            $log_manager_dirs[] = DIR_FS_CATALOG . 'app/storage/logs';
         }
 
         // -----
-        // If one or more files was removed, let the admin know (via message) and log the removal action.
+        // To remove .log files from other directories, too, use an /admin/extra_datafiles file to
+        // define the following constant.  The constant's definition would look like the following
+        // to also remove log-files from /includes/modules/payment/paypay/logs and /logs/edit_orders:
         //
-        if ($files_removed != 0) {
-            $logMessage = sprintf(LOG_MANAGER_FILES_MESSAGE_FORMAT, $files_removed, $keep_until_date);
+        // define('LOG_MANAGER_EXTRA_DIRECTORIES', DIR_FS_CATALOG . 'includes/modules/payment/paypay/logs' . ';' . DIR_FS_LOGS . '/edit_orders');
+        //
+        if (defined('LOG_MANAGER_EXTRA_DIRECTORIES')) {
+            $log_manager_extra_dirs = explode(';', str_replace(' ', '', LOG_MANAGER_EXTRA_DIRECTORIES));
+            foreach ($log_manager_extra_dirs as $log_manager_extra) {
+                if (is_dir($log_manager_extra)) {
+                    $log_manager_dirs[] = $log_manager_extra;
+                } else {
+                    trigger_error('Unknown directory ($log_manager_extra) identified in LOG_MANAGER_EXTRA_DIRECTORIES.', E_USER_NOTICE);
+                }
+            }
+            unset($log_manager_extra_dirs, $log_manager_extra);
+        }
+
+        $files_removed = 0;
+        foreach ($log_manager_dirs as $log_manager_dir) {
+            if ($dir = dir($log_manager_dir)) {
+                while (($current_file = $dir->read()) !== false) {
+                    // -----
+                    // ... looking for a ".log" file with a name that isn't in the "keep-these" list ...
+                    //
+                    if (strpos($current_file, '.log') !== false && $match_string !== '' && preg_match($match_string, $current_file) !== 1) {
+                        // -----
+                        // ... that was last modified prior to the keep-until date ...
+                        //
+                        $current_file = $log_manager_dir . DIRECTORY_SEPARATOR . $current_file;
+                        $modified = is_file($current_file) ? filemtime($current_file) : false;
+                        if ($modified !== false && $modified < $keep_until) {
+                            // -----
+                            // ... remove it.
+                            //
+                            unlink($current_file);
+                            $files_removed++;
+                        }
+                    }
+                }
+                $dir->close();
+            }
+        }
+
+        // -----
+        // If one or more .log files was removed, let the admin know (via message) and log the removal action.
+        //
+        if ($files_removed !== 0) {
+            $log_directories = implode($log_manager_dirs, ', ');
+            $logMessage = sprintf(LOG_MANAGER_FILES_MESSAGE_FORMAT, $files_removed, '.log', $log_directories, $keep_until_date);
             $messageStack->add($logMessage, 'success');
             error_log(date(PHP_DATE_TIME_FORMAT) . ', ' . $_SESSION['admin_id'] . ": $logMessage" . PHP_EOL, 3, DIR_FS_LOGS . '/log_manager_removal.log');
         }
