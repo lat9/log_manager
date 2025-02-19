@@ -1,4 +1,4 @@
-# Zen Cart Log Manager, v1.3.0
+# Zen Cart Log Manager, v1.3.1
 This plugin enables your Zen Cart to automatically remove `.log` files after a configurable amount of time.
 
 Refer to the [readme.html](https://htmlpreview.github.io/?https://github.com/lat9/log_manager/blob/master/readme.html) in this GitHub repository for additional details.
