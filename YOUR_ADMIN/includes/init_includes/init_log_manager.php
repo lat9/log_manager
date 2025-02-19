@@ -1,7 +1,7 @@
 <?php
 // -----
 // Part of the Log Manager plugin, created by lat9 (lat9@vinosdefrutastropicales.com)
-// Copyright (c) 2017-2023, Vinos de Frutas Tropicales.
+// Copyright (c) 2017-2025, Vinos de Frutas Tropicales.
 //
 // -----
 // If the plugin is enabled and current session is associated with a logged-in admin and the plugin's processing hasn't been run
@@ -15,7 +15,7 @@ if (isset($_SESSION['admin_id']) && !isset($_SESSION['log_managed'])) {
         $next_sort = $db->ExecuteNoCache(
             "SELECT MAX(sort_order) as max_sort
                FROM " . TABLE_CONFIGURATION . "
-              WHERE configuration_group_id = 10",
+              WHERE configuration_group_id = 10"
         );
         $sort_order = $next_sort->fields['max_sort'] + 1;
         $sort_order2 = $sort_order + 1;
