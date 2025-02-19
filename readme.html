@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<title>Zen Cart Log Manager</title>
+<style>
+a, a:active,
+a:visited {
+    color: #006666;
+}
+a:hover {
+    color:#00CC99;
+}
+body,
+p,
+h1,
+h2,
+h3,
+h4,
+li,
+td {
+    font-family: Verdana, AvantGarde, Tahoma, Arial, sans-serif;
+    font-size: 10pt;
+    color: black;
+    padding: 0px;
+    margin: 20px;
+}
+pre {
+    margin: 20px;
+}
+h1,
+h2,
+h3,
+h4 {
+    font-weight: bold
+}
+h1 {
+    font-size: 20px;
+}
+h2 {
+    font-size: 16px;
+    border-top: 1px solid black;
+    padding-top: 5px;
+}
+ol li,
+ul li {
+    margin: 5px 0;
+}
+.corefile,
+.impt {
+    color: red;
+}
+.added {
+    color: blue;
+}
+img {
+    margin-left: 20px;
+    max-width: 95%;
+}
+.removed {
+    text-decoration: line-through;
+}
+.smaller {
+    font-size: smaller;
+}
+table {
+    margin-left: 20px;
+}
+table, table th, table td {
+    padding: 0.5rem;
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+th, td {
+    text-align: left;
+}
+table table {
+    margin-top: 0.5rem;
+}
+.text-center {
+    text-align: center;
+}
+</style>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+</head>
+
+<body>
+    <h1>Log Manager for Zen Cart 1.5.7 (and later)</h1>
+    <h3>Version 1.3.0</h3>
+    <p>Current Support Thread at Zen Cart Forums: <a href="https://www.zen-cart.com/showthread.php?221939-Log-Manager-Support-Thread" target="_blank">https://www.zen-cart.com/showthread.php?221939-Log-Manager-Support-Thread</a></p>
+    <p>Zen Cart download from <a href="https://www.zen-cart.com/downloads.php?do=file&id=2123" target="_blank">https://www.zen-cart.com/downloads.php?do=file&id=2123</a>.</p>
+
+    <h2>Overview</h2>
+    <p>Logs are good things, providing information that allows an after-the-fact analysis if something goes wrong &hellip; but they can start filling up your store's <var>/logs</var> directory if you don't keep a watch on them!</p>
+    <p>The <em>Log Manager</em> enables you to control how long you keep those <var>.log</var> files, inspecting each file's last-modified date, and then automatically removing (i.e. deleting) any files that are past their &quot;expiration&quot;.  There's also a setting to enable you to identify logs that you want to keep (e.g. <em>zcInstall</em> logs).</p>
+    <p>Once configured, <em>Log Manager</em> inspects your store's <var>/logs</var> directory, starting with v1.1.0, each time an admin successfully logs in to see if there are any candidates for removal &hellip; and, if found, removes them.  Starting with v1.2.0, the plugin also creates and updates the file <var>/logs/log_manager_removal.log</var> to record its processing.</p>
+    <p class="mb-0">v1.3.0 introduces the site-specific capability to identify additional directories from which <var>.log</var> files can be automatically removed.  To enable this feature, create a .php file in the <var>/admin/includes/extra_datafiles</var> sub-directory containing:</p>
+    <pre class="mb-0">
+    &lt;?php
+    define('LOG_MANAGER_EXTRA_DIRECTORIES', 'directories-separated-by-a-semi-colon');
+    </pre>
+    <p class="mb-0">For example, to also remove .log files from the <var>/includes/modules/payment/paypal/logs</var> and <var>/logs/edit_orders</var>, you'd set the definition as:</p>
+    <pre>
+    &lt;?php
+    define('LOG_MANAGER_EXTRA_DIRECTORIES', DIR_FS_CATALOG . 'includes/modules/payment/paypay/logs' . ';' . DIR_FS_LOGS . '/edit_orders');
+    </pre>
+
+    <h2>Installation</h2>
+    <p>There are <b>no</b> core-file overwrites required by <em>Log Manager</em>.  Rename the <var>YOUR_ADMIN</var> folder to match your Zen Cart admin's folder name and then copy the plugin's files to your store's file-system:</p>
+    <ol>
+        <li>/YOUR_ADMIN/includes/auto_loaders/config.log_manager.php</li>
+        <li>/YOUR_ADMIN/includes/init_includes/init_log_manager.php</li>
+        <li>/YOUR_ADMIN/includes/languages/english/extra_definitions/log_manager_messages.php</li>
+    </ol>
+    <p>Once installed, two additional configuration settings are added to your admin-console's <em>Configuration-&gt;Logging</em>:</p>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>Log Manager: Days to Keep</td>
+            <td>Identify the number of days to keep any .log file whose name doesn't match the <em>Logs to Keep</em> setting, based on a file's last-modified date.  The default (<b>0</b>) disables the plugin's operation.</td>
+        </tr>
+        <tr>
+            <td>Log Manager: Files to Keep</td>
+            <td>Identify the <b><i>case-sensitive</i></b> starting characters of any log-files that you want to <b>keep</b>, regardless of their age, using a comma-separated list.  The default (<var>zcInstall</var>) keeps any files that match <var>/logs/zcInstall*.log</var>.</td>
+        </tr>
+    </table>
+
+    <h2>Uninstall</h2>
+    <p>First, delete the files that were copied to your zen-cart installation's admin directories. Restore your backup up of  then use your admin's <em>Tools-&gt;Run SQL Patches</em> to run the file <var>log_manager_uninstall.sql</var> that is present in the root-directory of the plugin's zip-file.</p>
+
+    <h2>File List</h2>
+    <p>The plugin provides the following files in its distribution zip-file.</p>
+    <ol>
+        <li>/YOUR_ADMIN/includes/auto_loaders/config.log_manager.php</li>
+        <li>/YOUR_ADMIN/includes/init_includes/init_log_manager.php</li>
+        <li>/YOUR_ADMIN/includes/languages/english/extra_definitions/log_manager_messages.php</li>
+    </ol>
+
+    <h2>Change History</h2>
+    <ul>
+        <li>v1.3.0, 2023-10-18:<ul>
+          <li>CHANGE: Defer all processing until an admin has logged in.</li>
+          <li>CHANGE: Enable <var>.log</var> files to be removed from directories in addition to <var>/logs</var>.</li>
+        </ul></li>
+        <li>v1.2.0, 2017-08-07:<ul>
+          <li>CHANGE: Log removal check moved to a $_SESSION variable for the currently-logged-in admin.</li>
+          <li>CHANGE: Create/update /logs/log_manager_removal.log each time one or more files are removed.</li>
+        </ul></li>
+        <li>v1.1.0, 2017-06-28, Log removal occurs now upon successful admin login.</li>
+        <li>v1.0.0, 2017-02-27, Initial release.</li>
+    </ul>
+</body>
+</html>
