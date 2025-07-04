@@ -113,7 +113,7 @@ if (isset($_SESSION['admin_id']) && !isset($_SESSION['log_managed'])) {
         // If one or more .log files was removed, let the admin know (via message) and log the removal action.
         //
         if ($files_removed !== 0) {
-            $log_directories = implode($log_manager_dirs, ', ');
+            $log_directories = implode(', ', $log_manager_dirs);
             $logMessage = sprintf(LOG_MANAGER_FILES_MESSAGE_FORMAT, $files_removed, '.log', $log_directories, $keep_until_date);
             $messageStack->add($logMessage, 'success');
             error_log(date(PHP_DATE_TIME_FORMAT) . ', ' . $_SESSION['admin_id'] . ": $logMessage" . PHP_EOL, 3, DIR_FS_LOGS . '/log_manager_removal.log');
